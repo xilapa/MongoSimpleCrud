@@ -30,19 +30,18 @@ public class BooksController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<IActionResult> Create(string name, string author)
+    public async Task<IActionResult> Create([FromBody] Book book)
     {
-        var book = new Book(name, author);
         await _context.Books().InsertAsync(book);
         return Ok(book);
     }
 
-    [HttpPut("{id:guid}/name")]
-    public async Task<IActionResult> UpdateName([FromRoute] string id, string name)
+    [HttpPut("{id:guid}/update-name-using-replace")]
+    public async Task<IActionResult> UpdateNameUsingReplace([FromRoute] string id, string name)
     {
         var book = await _context.Books().GetAsync(id);
         book.ChangeBookName(name);
-        await _context.Books().UpdateAsync(book);
+        await _context.Books().ReplaceAsync(book);
         return Ok(book);
     }
     
@@ -52,4 +51,12 @@ public class BooksController : ControllerBase
         await _context.Books().DeleteAsync(id);
         return NoContent();
     }
+
+    [HttpPost("{bookId}/update-only-fields-changed")]
+    public async Task Update([FromBody] Book book, [FromRoute] string bookId)
+    {
+        var oldBook = await _context.Books().GetAsync(bookId);
+        await _context.Books().UpdateAsync(oldBook, book);
+    }
+    
 }
